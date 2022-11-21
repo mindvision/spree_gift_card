@@ -1,0 +1,7 @@
+<!-- insert_after "#sidebarPromotion" -->
+
+<% if can? :admin, Spree::Product %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarGiftCard">
+      <%= tab :gift_cards, url: admin_gift_cards_path, icon: 'gift' %>
+    </ul>
+<% end %>
