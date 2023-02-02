@@ -10,7 +10,7 @@ module Spree
 
             # Wrap the transaction script in a transaction so it is an atomic operation
             Spree::GiftCard.transaction do
-              @gift_card = GiftCard.create!(gift_card_params)
+              @gift_card = GiftCard.new(gift_card_params)
 
               result = add_item_service.call(
                 order: spree_current_order,
@@ -20,6 +20,8 @@ module Spree
                 private_metadata: add_item_params[:private_metadata],
                 options: { gift_card: @gift_card }
               )
+
+              @gift_card.save! if result.success?
 
               render_order(result)
             end
