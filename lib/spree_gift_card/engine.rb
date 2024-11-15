@@ -21,6 +21,7 @@ module SpreeGiftCard
     end
 
     initializer "spree.register.payment_methods" do |app|
+      app.config.spree.payment_methods = []
       app.config.spree.payment_methods << Spree::PaymentMethod::GiftCard
     end
 
