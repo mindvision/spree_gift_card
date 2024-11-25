@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.test_files  = `git ls-files -- {test,spec,features}/*`.split("\n")
 
   s.require_path = 'lib'
-  s.required_ruby_version = '~> 3.1.0'
+  s.required_ruby_version = '~> 3.2.0'
   s.requirements << 'none'
 
   s.add_dependency 'spree_api',         '>= 4.4.0'
