@@ -164,6 +164,18 @@ module Spree
       ['checkout', 'pending'].include?(payment.state)
     end
 
+    ##
+    # Returns an array of attributes that can be used for searching via Ransack.
+    #
+    # This method is required by the Ransack gem to explicitly whitelist which model attributes are allowed in search
+    # queries. It's a security measure to prevent unauthorized access to sensitive attributes.
+    #
+    # @param auth_object [Object, nil] Authorization context (unused but required by Ransack)
+    # @return [Array<String>] List of attribute names that can be searched
+    def self.ransackable_attributes(auth_object = nil)
+      %w[email name note original_value]
+    end
+
     private
 
     def redeem(user)
