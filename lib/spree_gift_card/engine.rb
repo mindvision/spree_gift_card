@@ -21,7 +21,6 @@ module SpreeGiftCard
     end
 
     config.after_initialize do |app|
-      app.config.spree.payment_methods = []
       app.config.spree.payment_methods << Spree::PaymentMethod::GiftCard
     end
 
