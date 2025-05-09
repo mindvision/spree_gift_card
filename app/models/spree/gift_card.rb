@@ -1,30 +1,34 @@
 module Spree
-  class GiftCard < ActiveRecord::Base
-    include CalculatedAdjustments
+  module GiftCardConcern
+    extend ActiveSupport::Concern
 
-    UNACTIVATABLE_ORDER_STATES = ["complete", "awaiting_return", "returned"]
-    AUTHORIZE_ACTION = 'authorize'
-    CAPTURE_ACTION = 'capture'
-    VOID_ACTION = 'void'
-    CREDIT_ACTION = 'credit'
+    included do
+      include CalculatedAdjustments
 
-    belongs_to :variant
-    belongs_to :line_item, required: false
+      UNACTIVATABLE_ORDER_STATES = ["complete", "awaiting_return", "returned"]
+      AUTHORIZE_ACTION = 'authorize'
+      CAPTURE_ACTION = 'capture'
+      VOID_ACTION = 'void'
+      CREDIT_ACTION = 'credit'
 
-    has_many :transactions, class_name: 'Spree::GiftCardTransaction'
+      belongs_to :variant
+      belongs_to :line_item, required: false
 
-    validates :current_value, :name, :original_value, :code, :email, presence: true
+      has_many :transactions, class_name: 'Spree::GiftCardTransaction'
 
-    with_options allow_blank: true do
-      validates :code, uniqueness: { case_sensitive: false }
-      validates :current_value, numericality: { greater_than_or_equal_to: 0 }
-      validates :email, email: true
+      validates :current_value, :name, :original_value, :code, :email, presence: true
+
+      with_options allow_blank: true do
+        validates :code, uniqueness: { case_sensitive: false }
+        validates :current_value, numericality: { greater_than_or_equal_to: 0 }
+        validates :email, email: true
+      end
+
+      validate :amount_remaining_is_positive, if: :current_value
+
+      before_validation :generate_code, on: :create
+      before_validation :set_values, on: :create
     end
-
-    validate :amount_remaining_is_positive, if: :current_value
-
-    before_validation :generate_code, on: :create
-    before_validation :set_values, on: :create
 
     def safely_redeem(user)
       if able_to_redeem?(user)
@@ -119,7 +123,6 @@ module Spree
       end
     end
 
-    # Calculate the amount to be used when creating an adjustment
     def compute_amount(calculable)
       self.calculator.compute(calculable, self)
     end
@@ -128,7 +131,7 @@ module Spree
       raise 'Cannot debit gift card by amount greater than current value.' if (amount_remaining - amount.to_f.abs) < 0
       transaction = self.transactions.build
       transaction.amount = amount
-      transaction.order  = order if order
+      transaction.order = order if order
       self.current_value = self.current_value - amount.abs
       self.save
     end
@@ -164,16 +167,10 @@ module Spree
       ['checkout', 'pending'].include?(payment.state)
     end
 
-    ##
-    # Returns an array of attributes that can be used for searching via Ransack.
-    #
-    # This method is required by the Ransack gem to explicitly whitelist which model attributes are allowed in search
-    # queries. It's a security measure to prevent unauthorized access to sensitive attributes.
-    #
-    # @param auth_object [Object, nil] Authorization context (unused but required by Ransack)
-    # @return [Array<String>] List of attribute names that can be searched
-    def self.ransackable_attributes(auth_object = nil)
-      %w[email name note original_value]
+    module ClassMethods
+      def ransackable_attributes(auth_object = nil)
+        %w[email name note original_value]
+      end
     end
 
     private
@@ -193,13 +190,13 @@ module Spree
 
     def build_store_credit(user, previous_current_value)
       user.store_credits.build(
-            amount: previous_current_value,
-            category: Spree::StoreCreditCategory.gift_card.last,
-            memo: "Gift Card - #{ variant.product.name } received from #{ recieved_from }",
-            created_by: user,
-            action_originator: user,
-            currency: Spree::Config[:currency]
-        )
+        amount: previous_current_value,
+        category: Spree::StoreCreditCategory.gift_card.last,
+        memo: "Gift Card - #{variant.product.name} received from #{recieved_from}",
+        created_by: user,
+        action_originator: user,
+        currency: Spree::Config[:currency]
+      )
     end
 
     def recieved_from
@@ -226,6 +223,9 @@ module Spree
     def able_to_redeem?(user)
       Spree::Config.allow_gift_card_redeem && user && user.email == email && amount_remaining.to_f > 0.0 && line_item.order.completed?
     end
+  end
 
+  class GiftCard < ActiveRecord::Base
+    include GiftCardConcern
   end
 end

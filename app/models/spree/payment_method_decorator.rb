@@ -1,8 +1,17 @@
-Spree::PaymentMethod.class_eval do
+module Spree
+  module PaymentMethodDecorator
+    extend ActiveSupport::Concern
 
-  scope :gift_card, -> { where(type: "Spree::PaymentMethod::GiftCard") }
+    included do
+      scope :gift_card, -> { where(type: "Spree::PaymentMethod::GiftCard") }
+    end
 
-  def gift_card?
-    self.class == Spree::PaymentMethod::GiftCard
+    def gift_card?
+      self.class == Spree::PaymentMethod::GiftCard
+    end
   end
+end
+
+Rails.application.config.to_prepare do
+  Spree::PaymentMethod.include Spree::PaymentMethodDecorator
 end
