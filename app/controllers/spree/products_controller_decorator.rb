@@ -1,9 +1,7 @@
 module Spree
   module ProductsControllerDecorator
-    extend ActiveSupport::Concern
-
-    included do
-      before_action :redirect_gift_card, only: :show
+    def self.prepended(base)
+      base.before_action :redirect_gift_card, only: :show
     end
 
     private
@@ -12,6 +10,6 @@ module Spree
       redirect_to new_gift_card_path(product_id: @product) and return false if @product.try :is_gift_card?
     end
   end
+  ProductsController.prepend ProductsControllerDecorator
 end
 
-Spree::ProductsController.include Spree::ProductsControllerDecorator

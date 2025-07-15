@@ -1,13 +1,11 @@
 module Spree
   module PaymentDecorator
-    extend ActiveSupport::Concern
+    def self.prepended(base)
+      base.scope :gift_cards, -> { where(source_type: Spree::GiftCard.to_s) }
 
-    included do
-      scope :gift_cards, -> { where(source_type: Spree::GiftCard.to_s) }
+      base.delegate :gift_card?, to: :payment_method, allow_nil: true
 
-      delegate :gift_card?, to: :payment_method, allow_nil: true
-
-      state_machine.after_transition to: :completed, do: :process_gift_card
+      base.state_machine.after_transition to: :completed, do: :process_gift_card
 
       private
 
@@ -32,8 +30,6 @@ module Spree
       store_credit? || gift_card?
     end
   end
+  Payment.prepend Spree::PaymentDecorator
 end
 
-Rails.application.config.to_prepare do
-  Spree::Payment.include Spree::PaymentDecorator
-end

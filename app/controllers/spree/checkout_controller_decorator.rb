@@ -1,10 +1,8 @@
 module Spree
   module CheckoutControllerDecorator
-    extend ActiveSupport::Concern
-
-    included do
-      before_action :load_gift_card, :add_gift_card_payments, only: [:update], if: :payment_via_gift_card?
-      before_action :remove_gift_card_payments, only: [:update]
+    def self.prepended(base)
+      base.before_action :load_gift_card, :add_gift_card_payments, only: [:update], if: :payment_via_gift_card?
+      base.before_action :remove_gift_card_payments, only: [:update]
     end
 
     private
@@ -45,6 +43,5 @@ module Spree
       @gift_card_payment_method ||= Spree::PaymentMethod.gift_card.available.first
     end
   end
+  CheckoutController.prepend CheckoutControllerDecorator
 end
-
-Spree::CheckoutController.include Spree::CheckoutControllerDecorator

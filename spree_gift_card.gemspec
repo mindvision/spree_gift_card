@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = "3.5.22".freeze
   s.summary = "Spree Gift Card".freeze
 
-  s.installed_by_version = "3.5.22".freeze
+  s.installed_by_version = "3.6.8".freeze
 
   s.specification_version = 4
 
