@@ -1,9 +1,7 @@
 module Spree
   module Checkout
     module AddStoreCreditDecorator
-      extend ActiveSupport::Concern
-
-      included do
+      def self.prepended(base)
         def call(order:, amount: nil)
           @order = order
           return failed unless @order
@@ -21,8 +19,5 @@ module Spree
       end
     end
   end
-end
-
-Rails.application.config.to_prepare do
-  Spree::Checkout::AddStoreCredit.include Spree::Checkout::AddStoreCreditDecorator
+  Checkout::AddStoreCredit.prepend Checkout::AddStoreCreditDecorator
 end
