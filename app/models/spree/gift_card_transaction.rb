@@ -1,14 +1,10 @@
 module Spree
-  module GiftCardTransactionConcern
-    def self.prepended(base)
-      base.belongs_to :gift_card
-      base.belongs_to :order, required: false
+  class GiftCardTransaction < ActiveRecord::Base
+    belongs_to :gift_card
+    belongs_to :order, required: false
 
-      base.validates :amount, :gift_card, presence: true
+    validates :amount, :gift_card, presence: true
 
-      base.scope :authorize, -> { where(action: 'authorize') }
-    end
+    scope :authorize, -> { where(action: 'authorize') }
   end
-
-  GiftCardTransaction.prepend GiftCardTransactionConcern
 end
